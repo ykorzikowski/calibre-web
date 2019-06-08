@@ -333,6 +333,19 @@ class Settings(Base):
     config_use_goodreads = Column(Boolean)
     config_goodreads_api_key = Column(String)
     config_goodreads_api_secret = Column(String)
+    config_use_ldap = Column(Boolean)
+    config_ldap_provider_url = Column(String, default='localhost')
+    config_ldap_port = Column(SmallInteger, default=389)
+    config_ldap_schema = Column(String, default='ldap')
+    config_ldap_serv_username = Column(String)
+    config_ldap_serv_password = Column(String)
+    config_ldap_use_ssl = Column(Boolean, default=False)
+    config_ldap_use_tls = Column(Boolean, default=False)
+    config_ldap_require_cert = Column(Boolean, default=False)
+    config_ldap_cert_path = Column(String)
+    config_ldap_dn = Column(String)
+    config_ldap_user_object = Column(String)
+    config_ldap_openldap = Column(Boolean)
     config_mature_content_tags = Column(String)
     config_logfile = Column(String)
     config_ebookconverter = Column(Integer, default=0)
@@ -408,6 +421,19 @@ class Config:
         self.config_use_goodreads = data.config_use_goodreads
         self.config_goodreads_api_key = data.config_goodreads_api_key
         self.config_goodreads_api_secret = data.config_goodreads_api_secret
+        self.config_use_ldap = data.config_use_ldap
+        self.config_ldap_provider_url = data.config_ldap_provider_url
+        self.config_ldap_port = data.config_ldap_port
+        self.config_ldap_schema = data.config_ldap_schema
+        self.config_ldap_serv_username = data.config_ldap_serv_username
+        self.config_ldap_serv_password = data.config_ldap_serv_password
+        self.config_ldap_use_ssl = data.config_ldap_use_ssl
+        self.config_ldap_use_tls = data.config_ldap_use_ssl
+        self.config_ldap_require_cert = data.config_ldap_require_cert
+        self.config_ldap_cert_path = data.config_ldap_cert_path
+        self.config_ldap_dn = data.config_ldap_dn
+        self.config_ldap_user_object = data.config_ldap_user_object 
+        self.config_ldap_openldap = data.config_ldap_openldap
         if data.config_mature_content_tags:
             self.config_mature_content_tags = data.config_mature_content_tags
         else:
@@ -704,6 +730,74 @@ def migrate_Database():
         conn.execute("ALTER TABLE Settings ADD column `config_calibre` String DEFAULT ''")
         session.commit()
     try:
+        session.query(exists().where(Settings.config_use_ldap)).scalar()
+    except exc.OperationalError:
+        conn = engine.connect()
+        conn.execute("ALTER TABLE Settings ADD column `config_use_ldap` INTEGER DEFAULT 0")
+        session.commit()
+    try:
+        session.query(exists().where(Settings.config_ldap_provider_url)).scalar()
+    except exc.OperationalError:
+        conn = engine.connect()
+        conn.execute("ALTER TABLE Settings ADD column `config_ldap_provider_url` String DEFAULT ''")
+        session.commit()
+    try:
+        session.query(exists().where(Settings.config_ldap_port)).scalar()
+    except exc.OperationalError:
+        conn = engine.connect()
+        conn.execute("ALTER TABLE Settings ADD column `config_ldap_port` INTEGER DEFAULT ''")
+        session.commit()
+    try:
+        session.query(exists().where(Settings.config_ldap_schema)).scalar()
+    except exc.OperationalError:
+        conn = engine.connect()
+        conn.execute("ALTER TABLE Settings ADD column `config_ldap_schema ` String DEFAULT ''")
+        session.commit()
+    try:
+        session.query(exists().where(Settings.config_ldap_serv_username)).scalar()
+    except exc.OperationalError:
+        conn = engine.connect()
+        conn.execute("ALTER TABLE Settings ADD column `config_ldap_serv_username` String DEFAULT ''")
+        conn.execute("ALTER TABLE Settings ADD column `config_ldap_serv_password` String DEFAULT ''")
+        session.commit()
+    try:
+        session.query(exists().where(Settings.config_ldap_use_ssl)).scalar()
+    except exc.OperationalError:
+        conn = engine.connect()
+        conn.execute("ALTER TABLE Settings ADD column `config_ldap_use_ssl` INTEGER DEFAULT 0")
+        session.commit()
+    try:
+        session.query(exists().where(Settings.config_ldap_use_tls)).scalar()
+    except exc.OperationalError:
+        conn = engine.connect()
+        conn.execute("ALTER TABLE Settings ADD column `cconfig_ldap_use_tls` INTEGER DEFAULT 0")
+        session.commit()
+    try:
+        session.query(exists().where(Settings.config_ldap_require_cert)).scalar()
+    except exc.OperationalError:
+        conn = engine.connect()
+        conn.execute("ALTER TABLE Settings ADD column `config_ldap_require_cert` INTEGER DEFAULT 0")
+        conn.execute("ALTER TABLE Settings ADD column `config_ldap_cert_path` String DEFAULT ''")
+        session.commit()
+    try:
+        session.query(exists().where(Settings.config_ldap_dn)).scalar()
+    except exc.OperationalError:
+        conn = engine.connect()
+        conn.execute("ALTER TABLE Settings ADD column `config_ldap_dn` String DEFAULT ''")
+        session.commit()
+    try:
+        session.query(exists().where(Settings.config_ldap_user_object)).scalar()
+    except exc.OperationalError:
+        conn = engine.connect()
+        conn.execute("ALTER TABLE Settings ADD column `config_ldap_user_object` String DEFAULT ''")
+        session.commit()
+    try:
+        session.query(exists().where(Settings.config_ldap_openldap)).scalar()
+    except exc.OperationalError:
+        conn = engine.connect()
+        conn.execute("ALTER TABLE Settings ADD column `config_ldap_openldap` INTEGER DEFAULT 0")
+        session.commit()
+    try:
         session.query(exists().where(Settings.config_theme)).scalar()
     except exc.OperationalError:  # Database is not compatible, some rows are missing
         conn = engine.connect()
@@ -715,7 +809,6 @@ def migrate_Database():
         conn = engine.connect()
         conn.execute("ALTER TABLE Settings ADD column `config_updatechannel` INTEGER DEFAULT 0")
         session.commit()
-
 
     # Remove login capability of user Guest
     conn = engine.connect()
@@ -825,6 +918,7 @@ else:
     Base.metadata.create_all(engine)
     migrate_Database()
     clean_database()
+
 
 # Generate global Settings Object accessible from every file
 config = Config()
